@@ -3,8 +3,8 @@ const pool = require('../config/db.js');
 //Obtener todas las tareas
 const getAllTasks = async (req,res)=> {
    try {
-      const resultado = await pool.query('SELECT * FROM tasks');
-      if (result.rows.length === 0) {
+      const resultado = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [req.user.id]);
+      if (resultado.rows.length === 0) {
          return res.status(404).json({message: 'Sin tareas'})
       }
       res.json(resultado.rows);
@@ -14,6 +14,7 @@ const getAllTasks = async (req,res)=> {
    }
 };
 
+// Crear una nueva tarea
 const createTask = async (req, res) =>{
    const {title, due_date} = req.body;
    
@@ -22,7 +23,7 @@ const createTask = async (req, res) =>{
    }
 
    try{
-      const result = await pool.query('INSERT INTO tasks (title, due_date) VALUES ($1, $2) RETURNING *', [title, due_date]);
+      const result = await pool.query('INSERT INTO tasks (title, due_date, user_id) VALUES ($1, $2, $3) RETURNING *', [title, due_date, req.user.id]);
       res.status(201).json(result.rows[0])
    } catch(error){
       console.error('Error al agregar la tarea', error);
@@ -30,26 +31,33 @@ const createTask = async (req, res) =>{
    }
 }
 
-const updateTask = async (req,res)=>{
-   const {id} = req.params; //Id de la URL
-   const {title, is_complete} = req.body //Datos por actualizar
-   try {
-      const result = await pool.query('UPDATE tasks SET title = $1, is_complete = $2 WHERE id = $3 RETURNING *', [title, is_complete, id]);
+// Actualizar una tarea
+const updateTask = async (req, res) => {
+  const { id } = req.params;
+  const { title, is_complete } = req.body;
+  
+  try {
+    const result = await pool.query(
+      'UPDATE tasks SET title = $1, is_complete = $2 WHERE id = $3 AND user_id = $4 RETURNING *',
+      [title, is_complete, id, req.user.id]
+    );
 
-      if (result.rows.length === 0) {
-         return res.status(404).json({message: 'Tarea no encontrada'})
-      }
-      res.json(result.rows[0]);
-   } catch (error) {
-      console.error('Error al actualizar la tarea', error);
-      res.status(500).json({error: 'Error interno del servidor'});
-   }
-}
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Tarea no encontrada' });
+    }
+    res.json(result.rows[0]);
 
+  } catch (error) {
+    console.error('Error al actualizar la tarea:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+// Elminar una tarea
 const deleteTask = async (req,res)=>{
-   const {id} = req.params; //Id de la URL
+   const {id} = req.params;
    try {
-      const result = await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
+      const result = await pool.query('DELETE FROM tasks WHERE id = $1 AND user_id = $2', [id, req.user.id]);
 
       if (result.rowCount === 0) {
          return res.status(404).json({message: 'Tarea no encontrada'})
