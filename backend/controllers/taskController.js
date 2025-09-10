@@ -4,9 +4,6 @@ const pool = require('../config/db.js');
 const getAllTasks = async (req,res)=> {
    try {
       const resultado = await pool.query('SELECT * FROM tasks WHERE user_id = $1', [req.user.id]);
-      if (resultado.rows.length === 0) {
-         return res.status(404).json({message: 'Sin tareas'})
-      }
       res.json(resultado.rows);
    } catch (error) {
       console.error('Error al obtener las tareas', error);

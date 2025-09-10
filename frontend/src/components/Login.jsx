@@ -1,5 +1,6 @@
 // en src/components/Login.jsx
 import { useState } from 'react';
+import axiosInstance  from '../api/axios';
 
 const Login = ({ setToken }) => { 
   const [email, setEmail] = useState('');
@@ -10,23 +11,14 @@ const Login = ({ setToken }) => {
     e.preventDefault();
     setError(null);
     try {
-      const response = await fetch('http://localhost:5000/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Login fallido');
-      }
-
-      const data = await response.json();
-      console.log('Login exitoso, token recibido:', data.token);
-      setToken(data.token); // Usamos la función del padre para guardar el token
+      // Llamada a la API para login
+      const response = await axiosInstance.post('/users/login', { 
+        email, 
+        password });
+      // Usamos la función del padre para guardar el token
+      setToken(response.data.token); 
     } catch (err) {
-      setError(err.message);
+      setError('Credenciales inválidas:' + err.message);
     }
   };
 

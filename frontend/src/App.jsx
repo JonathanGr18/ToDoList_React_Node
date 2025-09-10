@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import Login from './components/login.jsx';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashBoardPage';
 
 function App() {
   // Estado para el token
@@ -20,20 +23,24 @@ function App() {
     handleSetToken(null);
   }
 
-  return(
-    <div>
-      <h1>Mi aplicacion de tareas</h1>
-      {token ? (
-        // Si hay token muestra contenido y un boton de logout
-        <div>
-          <p>Bienvenido has iniciado sesion.</p>
-          <button onClick={handleLogout}>Cerrar Sesion</button>
-        </div>
-      ) : (
-        // Si no hay token muestra el login
-        <Login setToken={handleSetToken} />
-      )}
-    </div>
+  return (
+    <BrowserRouter>
+      {/* Aquí irá el Navbar más adelante */}
+      <Routes>
+        <Route 
+          path="/login" 
+          element={!token ? <LoginPage setToken={handleSetToken} /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/register" 
+          element={!token ? <RegisterPage /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/" 
+          element={token ? <DashboardPage handleLogout={handleLogout} token={token} /> : <Navigate to="/login" />} 
+        />
+      </Routes>
+    </BrowserRouter>
   );
 
 }

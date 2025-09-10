@@ -9,6 +9,7 @@ app.use(express.json());
 
 // Ruta
 const taskRoute = require('./routes/taskRoutes.js');
+console.log('✅ taskRoutes fue cargado correctamente:', !!taskRoute);
 const userRoute = require('./routes/userRoutes.js');
 
 // Endpoint
